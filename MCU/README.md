@@ -52,6 +52,46 @@ MCUs arises precisely to address this need: aggregating multiple legacy firmware
 same physical microcontroller, while preserving spatial and temporal isolation among them, without
 requiring code rewrites or platform changes [3, 6, 7].
 
+## The Mixed-Criticality Challenge
+
+In the federated architecture, each application runs on its own dedicated hardware, so the
+coexistence of different ASIL levels was never an issue — each MCU simply had its own criticality
+level and was certified independently. The problem arises precisely **when consolidating**: bringing
+together applications with different criticality levels onto the same hardware platform introduces
+the risk of interference between them, which is the defining challenge of **Mixed-Criticality
+Systems (MCS)** [8, 9].
+
+### Why Not Just Consolidate Apps of the Same Criticality Level?
+
+A natural objection is: why not avoid the problem by consolidating only applications with the
+same ASIL level onto the same MCU? The literature identifies two fundamental reasons why this
+approach is insufficient.
+
+**1. Resource waste.** High-criticality applications (e.g., ASIL-D) are certified using very
+pessimistic WCET estimates obtained via static analysis. As a result, the processor is significantly
+underutilized. Dedicating an ASIL-D MCU — expensive, with lockstep hardware — exclusively to
+high-criticality tasks means paying for hardware that runs at a fraction of its capacity. As Jiang
+et al. note: *"complete isolation leads to huge resource waste as the WCET estimations used in the
+certification of high-criticality tasks is very pessimistic"* [8].
+
+**2. Loss of consolidation benefits.** Grouping by criticality level still results in as many MCUs
+as there are ASIL levels, merely replacing one form of proliferation with another. The reduction
+in hardware count — and thus in cost, weight, and interconnection complexity — would be
+marginal at best.
+
+**3. Intrinsic interdependency across criticality levels.** Modern safety-critical functions are
+inherently mixed-criticality by nature. In an autonomous driving system, for instance, braking
+(ASIL-D) and infotainment (non-safety) components must communicate and coordinate. Physically
+separating them introduces latency and communication complexity that undermines system
+efficiency [9].
+
+The dilemma is therefore unavoidable: if resource sharing between high- and low-criticality
+tasks is allowed, then low-criticality tasks must be certified at the high-criticality level due to
+potential interference — which is prohibitively expensive. If sharing is forbidden, resource
+utilization collapses [8]. The solution lies in **virtualization with strong spatial and temporal
+isolation**, which allows mixed-criticality applications to coexist on the same MCU while
+preventing any cross-criticality interference.
+
 ---
 
 ## References
@@ -63,3 +103,5 @@ requiring code rewrites or platform changes [3, 6, 7].
 - [5] R. Pan and G. Parmer, "MxU: Towards Predictable, Flexible, and Efficient Memory Access Control for the Secure IoT," *ACM Transactions on Embedded Computing Systems*, vol. 18, no. 5s, Article 103, 2019.
 - [6] A. K. Sundar Rajan et al., "Hypervisor for Consolidating Real-Time Automotive Control Units: Its Procedure, Implications and Hidden Pitfalls," *Journal of Systems Architecture*, vol. 82, pp. 37–48, 2018.
 - [7] A. Kohn, K. Schmidt, J. Decker, M. Sebastian, A. Züpke, and A. Herkersdorf, "Timing Analysis for Hypervisor-based I/O Virtualization in Safety-Related Automotive Systems," *SAE Int. J. Passeng. Cars – Electron. Electr. Syst.*, vol. 10, no. 2, 2017.
+- [8] Z. Jiang, N. Audsley, P. Dong, N. Guan, X. Dai, and L. Wei, "MCS-IOV: Real-Time I/O Virtualization for Mixed-Criticality Systems," in *Proc. IEEE Real-Time Systems Symposium (RTSS)*, 2019.
+- [9] S. Pinto, H. Araujo, D. Oliveira, J. Martins, and A. Tavares, "Virtualization on TrustZone-enabled Microcontrollers? Voilà!" in *Proc. IEEE Real-Time Embedded Technology and Applications Symposium (RTAS)*, 2019.
